@@ -1,0 +1,47 @@
+
+  .dropdown_menu{
+    width: 200px;
+    right: 1px;
+    left: auto !important;
+    top: 48px !important;
+  }
+
+
+.dropdown_menu_items {
+  i {
+    margin-right: 10px;
+  }
+}
+.header {
+  .v-btn .v-btn__content .v-icon {
+    color: $main_color;
+  }
+  margin-bottom: 50px;
+  .highlighted {
+    background: #cbcbcb;
+  }
+  &_nav {
+    a {
+      display: flex;
+      button {
+        height: 100% !important;
+      }
+    }
+  }
+}
+.logo-wrapper {
+  a {
+    display: flex;
+    align-items: center;
+  }
+}
+
+
+.v-toolbar__content {
+  min-height: 64px;
+}
+.header_mobile_anchor{
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
