@@ -16,21 +16,22 @@ class Holiday extends Model
         parent::boot();
 
 
-        self::creating(function ($holiday) {
+       /* self::creating(function ($holiday) {
            self::calculateRemainingHolidays($holiday);
-        });
+        });*/
 
-        self::updating(function ($holiday) {
+       /* self::updating(function ($holiday) {
+            die();
             self::calculateRemainingHolidaysWithRollback($holiday);
-        });
+        });*/
 
-        self::deleting(function ($holiday) {
+        /*   self::deleting(function ($holiday) {
             $old_allowance = self::rollBackHolidayAllowance($holiday);
             $meta = UserData::where('user_id', $holiday->user_id);
             $allowance = $old_allowance + $meta->first()->holiday_allowance;
             $meta->update(['holiday_allowance' => $allowance]);
 
-        });
+        });*/
 
     }
 
@@ -48,8 +49,9 @@ class Holiday extends Model
         if($old_allowance < $diff_in_days  && $old_allowance) {
            die();
         }
-        $holiday_allowance = $old_allowance ?: $meta->first()->holiday_allowance - $diff_in_days;
-        $meta->update(['holiday_allowance' => $holiday_allowance]);
+        $holiday_allowance =  $meta->first()->holiday_allowance - $diff_in_days;
+
+        $meta->update(['holiday_allowance' =>  $holiday_allowance]);
 
     }
 

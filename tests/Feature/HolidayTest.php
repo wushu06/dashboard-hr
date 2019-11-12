@@ -146,6 +146,7 @@ class HolidayTest extends TestCase
         $holiday = create('App\Holiday', $array);
         $this->patch('/holiday/update/'.$holiday->id, $new_array );
         $this->assertDatabaseHas('holidays', ['start_date' => $new_start]);
+        $this->assertDatabaseHas('holidays', ['start_date' => $new_start]);
 
     }
     /**
@@ -198,7 +199,6 @@ class HolidayTest extends TestCase
 
         $this->assertDatabaseHas('holidays', ['id' => $holiday->id]);
         $this->assertDatabaseHas('user_data', ['holiday_allowance' => 4]);
-
     }
 
     /**
@@ -218,10 +218,83 @@ class HolidayTest extends TestCase
         ];
         $holiday = create('App\Holiday', $array);
         $this->assertDatabaseHas('user_data', ['holiday_allowance' => 4]);
-
         $new_array = ['user_id'   => $user->id,'start_date' => $new_start, 'end_date' => $this->end];
         $this->patch('/holiday/update/'.$holiday->id, $new_array ); // allowance goes back to 10
         $this->assertDatabaseHas('user_data', ['holiday_allowance' => 0]); // allowance drops to 0
+    }
+
+    /**
+     * @test
+     */
+    public function update_holiday_with_less_allowance_on_update()
+    {
+        $new_start = \Carbon\Carbon::createFromFormat('Y-m-d H:s:i', '2015-5-10 3:30:34');
+
+        $this->adminSignIn();
+        $user = create('App\UserData', ['user_id' =>  auth()->user()->id,'holiday_allowance' => 10]);
+        $array = [
+            'company_id'=> auth()->user()->company_id,
+            'user_id'   => auth()->user()->id,
+            'start_date' => $this->start,
+            'end_date' =>   $this->end
+        ];
+        $holiday = create('App\Holiday', $array);
+        $this->assertDatabaseHas('user_data', ['holiday_allowance' => 4]);
+        $new_array = ['user_id'   => $user->id,'start_date' => $new_start, 'end_date' => $this->end];
+        $this->patch('/holiday/update/'.$holiday->id, $new_array ); // allowance goes back to 10
+        $this->assertDatabaseHas('user_data', ['holiday_allowance' => 8]); // allowance drops to 0
+    }
+
+    /**
+     * @test
+     */
+    public function user_cant_create_holiday_over_allowance()
+    {
+        $over = \Carbon\Carbon::createFromFormat('Y-m-d H:s:i', '2015-12-2 3:30:34');
+
+        $this->adminSignIn();
+         create('App\UserData', ['user_id' =>  auth()->user()->id,'holiday_allowance' => 10]);
+        $array = [
+            'company_id'=> auth()->user()->company_id,
+            'user_id'   => auth()->user()->id,
+            'start_date' => $this->start,
+            'end_date' =>  $over
+        ];
+        try {
+            create('App\Holiday', $array);
+        } catch (\Exception $e) {
+            $this->assertEquals('You don\'t have enough allowance.', $e->getMessage());
+        }
+
+        $this->assertDatabaseHas('user_data', ['holiday_allowance' => 10]); // allowance drops to 0
+    }
+
+    /**
+     * @test
+     */
+    public function user_cant_update_holiday_over_allowance()
+    {
+        $over = \Carbon\Carbon::createFromFormat('Y-m-d H:s:i', '2015-12-2 3:30:34');
+
+        $this->adminSignIn();
+        $user = create('App\UserData', ['user_id' =>  auth()->user()->id,'holiday_allowance' => 10]);
+        $array = [
+            'company_id'=> auth()->user()->company_id,
+            'user_id'   => auth()->user()->id,
+            'start_date' => $this->start,
+            'end_date' =>  $this->end
+        ];
+        $holiday = create('App\Holiday', $array);
+        $this->assertDatabaseHas('user_data', ['holiday_allowance' => 4]);
+        $new_array = ['user_id'   => $user->id,'start_date' => $over, 'end_date' => $this->end];
+
+        try {
+            $this->patch('/holiday/update/'.$holiday->id, $new_array ); // allowance goes back to 10
+        } catch (\Exception $e) {
+            $this->assertEquals('You don\'t have enough allowance.', $e->getMessage());
+        }
+
+        $this->assertDatabaseHas('user_data', ['holiday_allowance' => 4]); // allowance drops to 0
     }
 
 }

@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Holiday;
+use App\Observers\HolidayObserver;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -25,6 +27,7 @@ class AppServiceProvider extends ServiceProvider
     {
         //
         \Validator::extend('spamfree', 'App\Rules\SpamFree@passes');
+        Holiday::observe(HolidayObserver::class);
 
     }
 }
